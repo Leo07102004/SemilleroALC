@@ -76,22 +76,23 @@ El hiperparámetro crítico del método es el ancho de ventana $h$:
 
 El proyecto consta de los siguientes archivos:
 
-- [`parzen_classification.py`](file:///C:/Users/storr/OneDrive%20-%20Universidad%20de%20la%20Sabana/Semillero%20Math/parzen_classification.py): Script autocontenido que construye el dataset, entrena el clasificador, evalúa distintas configuraciones y genera las gráficas.
-- [`datos_sinteticos.csv`](file:///C:/Users/storr/OneDrive%20-%20Universidad%20de%20la%20Sabana/Semillero%20Math/datos_sinteticos.csv): DataFrame sintético exportado con 450 muestras y 4 columnas (`x1`, `x2`, `clase`, `etiqueta`).
-- [`resultados_parzen.png`](file:///C:/Users/storr/OneDrive%20-%20Universidad%20de%20la%20Sabana/Semillero%20Math/resultados_parzen.png): Visualización comparativa de fronteras de decisión y curvas de iso-densidad.
+- [`parzen_classification.py`](parzen_classification.py): Script autocontenido que construye el dataset, entrena el clasificador, evalúa distintas configuraciones y genera las gráficas.
+- [`datos_sinteticos.csv`](datos_sinteticos.csv): DataFrame sintético exportado con 450 muestras y 4 columnas (`x1`, `x2`, `clase`, `etiqueta`).
+- [`resultados_parzen.png`](resultados_parzen.png): Visualización comparativa de fronteras de decisión y curvas de iso-densidad.
 
 ### 2.1 Diseño del DataFrame Sintético
-La función [`generar_dataframe_sintetico`](file:///C:/Users/storr/OneDrive%20-%20Universidad%20de%20la%20Sabana/Semillero%20Math/parzen_classification.py#L18-L55) crea un conjunto de datos 2D de $450$ observaciones balanceadas ($150$ por clase) con tres geometrías que desafían a los clasificadores lineales convencionales:
+La función [`generar_dataframe_sintetico`](parzen_classification.py#L18-L55) crea un conjunto de datos 2D de $450$ observaciones balanceadas ($150$ por clase) con tres geometrías que desafían a los clasificadores lineales convencionales:
 1. **Clase 0 (Bimodal):** Compuesta por dos sub-clusters gaussianos separados en cuadrantes opuestos centrados en $(-2.0, 1.5)$ y $(1.5, -2.0)$.
-2. **Clase 1 (Arco no lineal):** Distribución semicircular generada en coordenadas polares ($r \sim \mathcal{N}(2.2, 0.28^2)$, $\theta \sim \mathcal{U}(0.1\pi, 0.9\pi)$) que envuelve la región central.
+2. **Clase 1 (Arco no lineal):** Distribución semicircular generada en coordenadas polares $({r \sim \mathcal{N}(2.2, 0.28^2)}, {\theta \sim \mathcal{U}(0.1\pi, 0.9\pi)})$
+que envuelve la región central.
 3. **Clase 2 (Núcleo elíptico):** Cluster central denso con covarianza correlacionada centrado en $(0.2, 0.2)$.
 
-### 2.2 Arquitectura de [`ParzenWindowClassifier`](file:///C:/Users/storr/OneDrive%20-%20Universidad%20de%20la%20Sabana/Semillero%20Math/parzen_classification.py#L61-L169)
+### 2.2 Arquitectura de [`ParzenWindowClassifier`](parzen_classification.py#L61-L169)
 La clase implementa la interfaz estándar de aprendizaje supervisado:
-- [`_funcion_ventana(u)`](file:///C:/Users/storr/OneDrive%20-%20Universidad%20de%20la%20Sabana/Semillero%20Math/parzen_classification.py#L84-L111): Evalúa de forma vectorizada en `numpy` la función núcleo $\varphi(\mathbf{u})$ sobre tensores de diferencias escaladas $\mathbf{u} = (\mathbf{x} - \mathbf{x}_i)/h$.
-- [`fit(X, y)`](file:///C:/Users/storr/OneDrive%20-%20Universidad%20de%20la%20Sabana/Semillero%20Math/parzen_classification.py#L113-L130): Almacena las observaciones particionadas por clase y estima las probabilidades a priori empíricas $\hat{P}(\omega_k) = N_k / N$.
-- [`estimar_densidad_clase(X, clase)`](file:///C:/Users/storr/OneDrive%20-%20Universidad%20de%20la%20Sabana/Semillero%20Math/parzen_classification.py#L132-L145): Calcula $\hat{p}(\mathbf{x} \mid \omega_k)$ mediante broadcasting tridimensional `(n_eval, n_k, d)` sin bucles explícitos sobre las muestras.
-- [`predict_proba(X)`](file:///C:/Users/storr/OneDrive%20-%20Universidad%20de%20la%20Sabana/Semillero%20Math/parzen_classification.py#L147-L169) y [`predict(X)`](file:///C:/Users/storr/OneDrive%20-%20Universidad%20de%20la%20Sabana/Semillero%20Math/parzen_classification.py#L171-L175): Aplican el Teorema de Bayes para obtener $P(\omega_k \mid \mathbf{x})$ y seleccionan la clase con máxima probabilidad a posteriori.
+- [`_funcion_ventana(u)`](parzen_classification.py#L84-L111): Evalúa de forma vectorizada en `numpy` la función núcleo $\varphi(\mathbf{u})$ sobre tensores de diferencias escaladas $\mathbf{u} = (\mathbf{x} - \mathbf{x}_i)/h$.
+- [`fit(X, y)`](parzen_classification.py#L113-L130): Almacena las observaciones particionadas por clase y estima las probabilidades a priori empíricas $\hat{P}(\omega_k) = N_k / N$.
+- [`estimar_densidad_clase(X, clase)`](parzen_classification.py#L132-L145): Calcula $\hat{p}(\mathbf{x} \mid \omega_k)$ mediante broadcasting tridimensional `(n_eval, n_k, d)` sin bucles explícitos sobre las muestras.
+- [`predict_proba(X)`](parzen_classification.py#L147-L169) y [`predict(X)`](parzen_classification.py#L171-L175): Aplican el Teorema de Bayes para obtener $P(\omega_k \mid \mathbf{x})$ y seleccionan la clase con máxima probabilidad a posteriori.
 
 ---
 
